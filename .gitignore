@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+*.build/
+*.dist/
+*.onefile-build/
+*.exe
+data/std_taxonomy.db
+data/signatures*.db
+점검_*.html
+점검_*.csv
