@@ -1267,7 +1267,8 @@ def currencies_in_text(text):
 
 def currencies_in_name(q):
     """요소명(CamelCase)의 단어 중 통화코드. DART 작성기 자동 접미어(Of...LineItems...) 앞부분만 본다."""
-    loc = re.split(r"Of[A-Z]\w*(LineItems|Table|Domain|Axis)", q.split(":")[-1])[0]
+    from .guide_checks import _local   # 확장요소는 작성기 ID 꼬리(Of+소속 항목·표)를 뗀 자기 이름
+    loc = re.split(r"Of[A-Z]\w*(LineItems|Table|Domain|Axis)", _local(q))[0]
     return {w.upper() for w in split_camel(loc) if w.upper() in CURRENCIES and w.upper() != "KRW"}
 
 
@@ -1302,7 +1303,8 @@ def member_currencies(r, ctx):
 
 def _code_in_name(q, code):
     """요소 이름(작성기 자동 접미어 '…LineItems…Table…' 앞부분)에 통화코드가 있는지 — 대소문자 무시(Usd·USD·…Assetsusd)."""
-    nm = re.split(r"(?i)line_?items?|table", q.split(":")[-1])[0]
+    from .guide_checks import _local   # 확장요소는 작성기 ID 꼬리(Of+소속 항목·표)를 뗀 자기 이름
+    nm = re.split(r"(?i)line_?items?|table", _local(q))[0]
     return code.lower() in nm.lower()
 
 
@@ -1748,6 +1750,8 @@ def run_all(r, std, frame=False, progress=None):
     """frame=True(틀 검사): 숫자가 비어 있는 틀 단계용. 값이 없어서 생기는 검출을 빼고,
     값을 보고 판정하는 점검에는 needs_values 표시를 단다(제출 검증 결과에는 영향 없음)."""
     r.frame = frame
+    from .guide_checks import _set_report
+    _set_report(r)   # 확장요소 이름에서 작성기 ID 꼬리를 떼는 데 쓸 상위 요소 표
     results = []
     for _i, (sec, card, level, fn, basis, _) in enumerate(CHECKS):
         if progress:

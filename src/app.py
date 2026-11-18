@@ -3,7 +3,7 @@
 
 사용법:
     python -m src.app                      # 파일 선택 창
-    python -m src.app <파일.ixd | 원문XBRL폴더>   # 지정 파일 처리 (exe에 파일을 끌어다 놓아도 됨)
+    python -m src.app <파일.ixd | 공시XBRL.zip | 원문XBRL폴더>   # 지정 파일 처리 (exe에 파일을 끌어다 놓아도 됨)
 
 결과: 입력 파일과 같은 폴더에 점검_<회사>_<기준일>.html / .csv 를 만들고 html을 연다.
 """
@@ -18,18 +18,22 @@ from pathlib import Path
 def company_name(src, fallback):
     """파일명 '…_<고유번호>_<회사명>.v.1.0….ixd' 에서 회사명을 뽑는다."""
     m = re.search(r"_\d{6,8}_(.+?)(?:\.v\.\d|\.ixd|$)", Path(src).name)
+    if not m:   # DART 공시 XBRL: '[회사명]3분기보고서_IFRS(원문XBRL)(…).zip'
+        m = re.match(r"\[(.+?)\]", Path(src).name)
     return m.group(1) if m else fallback
 
 
 def pick_source(root):
     from tkinter import filedialog
     root.attributes("-topmost", True)
-    return filedialog.askopenfilename(parent=root, title="점검할 XBRL 파일(.ixd)을 선택하세요",
-                                      filetypes=[("XBRL 작성 파일", "*.ixd"), ("모든 파일", "*.*")])
+    return filedialog.askopenfilename(parent=root, title="점검할 XBRL 파일(.ixd 또는 공시 XBRL .zip)을 선택하세요",
+                                      filetypes=[("XBRL 파일", "*.ixd *.zip"), ("XBRL 작성 파일", "*.ixd"),
+                                                 ("DART 공시 XBRL", "*.zip"), ("모든 파일", "*.*")])
 
 
-BAD_INPUT = ("제출용 XBRL 파일(.ixd)이 아닙니다.\n\n"
-             "DART XBRL 작성기에서 만든 제출용 ixd 파일을 선택해 주세요.")
+BAD_INPUT = ("점검할 수 있는 XBRL 파일이 아닙니다.\n\n"
+             "DART XBRL 작성기에서 만든 제출용 ixd 파일, 또는 DART 공시 화면에서 받은 "
+             "'…_IFRS(원문XBRL)(…).zip' 파일을 선택해 주세요.")
 
 
 def check_input(src):
@@ -41,6 +45,14 @@ def check_input(src):
         return f"파일을 찾을 수 없습니다.\n\n{p}"
     if p.is_dir():
         names = [f.name.lower() for f in p.rglob("*")]
+        ok = any(n.endswith(".xbrl") for n in names) and any(n.startswith("entity") and n.endswith(".xsd") for n in names)
+        return None if ok else bad
+    if p.suffix.lower() == ".zip" and zipfile.is_zipfile(p):   # DART 공시 원문XBRL zip
+        try:
+            with zipfile.ZipFile(p) as z:
+                names = [Path(n).name.lower() for n in z.namelist()]
+        except Exception:
+            return bad
         ok = any(n.endswith(".xbrl") for n in names) and any(n.startswith("entity") and n.endswith(".xsd") for n in names)
         return None if ok else bad
     if p.suffix.lower() != ".ixd" or not zipfile.is_zipfile(p):

@@ -298,6 +298,14 @@ def load(src, corp_name=None, source="self", db_path=DEFAULT_DB):
                      if n == "meta.xml" or n.startswith("EntityTaxonomy/") or n.startswith("X0")]
             z.extractall(tmp, names)
         base = tmp
+    elif src.is_file() and src.suffix.lower() == ".zip":   # DART 공시 '…_IFRS(원문XBRL)(…).zip' — 파일 7개가 바로 들어 있음
+        tmp = Path(tempfile.mkdtemp(prefix="xbrlzip_"))
+        with zipfile.ZipFile(src) as z:
+            for n in z.namelist():
+                name = Path(n).name   # 하위 폴더·상대 경로는 무시하고 파일 이름만(압축 경로 조작 방지)
+                if name and name.lower().endswith((".xbrl", ".xsd", ".xml")):
+                    (tmp / name).write_bytes(z.read(n))
+        base = tmp
     else:
         base = src
     try:

@@ -18,13 +18,13 @@ DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART X
 
 ## 다른 회사 공시 XBRL 점검하기
 
-DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 현재 버전은 **압축을 푼 폴더**로만 받습니다(zip을 바로 넣는 기능은 다음 버전에 추가 예정).
+DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 받은 **zip 파일을 그대로** 넣으면 됩니다(v1.01부터).
 
 1. [DART](https://dart.fss.or.kr)에서 회사를 검색하고, 공시 목록의 보고서명 옆 **XBRL Viewer** 단추를 누릅니다.
 2. XBRL 뷰어 오른쪽 위의 **다운로드**를 누릅니다.
 3. 파일 목록에서 **`[회사명]보고서명_IFRS(원문XBRL)(날짜).zip`** 을 내려받습니다(`_재무제표(…)_ko.xlsx`는 필요 없음).
-4. 내려받은 zip의 압축을 풀고, 풀린 **폴더**를 `XBRL_check.exe` 위로 끌어다 놓습니다(파일 선택창으로는 폴더를 고를 수 없습니다).
-5. 그 폴더 안에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어집니다.
+4. 내려받은 zip을 `XBRL_check.exe` 위로 끌어다 놓거나, 실행 후 파일 선택창에서 고릅니다. 압축을 푼 **폴더**를 끌어다 놓아도 됩니다.
+5. zip(또는 폴더)과 같은 곳에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어집니다.
 
 공시된 XBRL에는 작성기 정보(주석 번호·제목 등)가 없어 일부 안내가 제출용 ixd를 점검할 때보다 덜 자세할 수 있습니다.
 
@@ -38,14 +38,14 @@ DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 현재 �
 이 프로그램이 안전한지 직접 확인하실 수 있습니다.
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
-  - 내려받는 `XBRL_check.zip`: https://www.virustotal.com/gui/file/a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0 (탐지 없음)
-  - 압축을 푼 `XBRL_check.exe`: https://www.virustotal.com/gui/file/66f36948aad66cbd298e26d0118d4e68580181afc6aabe28d6a4f58d151d4d53
-  - 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지할 수 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. 안랩 V3를 비롯한 나머지 백신은 "탐지 없음"입니다.
+  - 내려받는 `XBRL_check.zip`(v1.01): https://www.virustotal.com/gui/file/868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9
+  - 압축을 푼 `XBRL_check.exe`(v1.01): https://www.virustotal.com/gui/file/fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce
+  - 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지할 수 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.0 검사에서는 안랩 V3를 비롯한 나머지 백신이 모두 "탐지 없음"이었습니다.
   - Defender가 파일을 격리하면 Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 "허용"하거나, 소스에서 직접 빌드해 쓰실 수 있습니다(아래 "소스에서 실행·빌드").
 - **파일 지문(SHA-256)**: 내려받은 `XBRL_check.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
-  - `a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0`
+  - `868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9`
   - 확인 방법(PowerShell): `Get-FileHash XBRL_check.zip -Algorithm SHA256`
-  - 압축을 푼 `XBRL_check.exe`: `66f36948aad66cbd298e26d0118d4e68580181afc6aabe28d6a4f58d151d4d53`
+  - 압축을 푼 `XBRL_check.exe`: `fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce`
   - 위 값과 다르면 받는 중 손상됐거나 변조된 파일이니 쓰지 마세요.
 
 > 참고: 이 프로그램은 파이썬을 기계어로 변환(Nuitka)해 만들었습니다. 이런 형식의 실행 파일을 일부 백신이 드물게 오진하는 경우가 있는데, 바이러스가 아니라 형식을 보고 의심하는 것입니다. 위 VirusTotal 결과와 공개된 소스로 직접 확인하실 수 있습니다.
@@ -76,7 +76,7 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
   --include-data-files=data/std_taxonomy.db=data/std_taxonomy.db ^
   --include-data-files=rules/guide_axis_members.csv=rules/guide_axis_members.csv ^
   --include-data-files=rules/guide_examples.csv=rules/guide_examples.csv ^
-  --windows-product-name="XBRL Check" --windows-file-version=1.0.0.0 --windows-product-version=1.0.0.0 ^
+  --windows-product-name="XBRL Check" --windows-file-version=1.0.1.0 --windows-product-version=1.0.1.0 ^
   --output-filename=XBRL_check.exe run_app.py
 ```
 
@@ -92,6 +92,14 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
 | `src/compliance/examples.py` | 가이드 모범사례에 나온 구조는 허용 |
 | `src/compliance/report.py` | HTML 보고서 |
 | `rules/` | 가이드 모범사례의 축·멤버·요소 목록(쪽 번호) |
+
+## 변경 내역
+
+- **v1.01**
+  - DART 공시 XBRL zip(`…_IFRS(원문XBRL)(…).zip`)을 압축을 풀지 않고 바로 점검
+  - 오탐 수정: '주식 수는 Shares 타입' 점검이 확장요소 ID 뒤에 붙는 소속 표 이름까지 보고 배당금·액면총액·일수 행을 주식 수로 판정하던 것(요소 자신의 이름으로만 판정, 주식선택권·배출권 등 주식이 아닌 수량 제외)
+  - 같은 원인으로 놓치던 검출 보완: 확장요소 이름을 볼 때 소속 표 이름 꼬리를 떼고 판정(범주 축 아래 종류 멤버, 변동 행 이름, 무형자산 영업권 포함 여부, 만기분석 행)
+- **v1.0** 첫 배포
 
 ## 라이선스·책임
 

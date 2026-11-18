@@ -78,8 +78,43 @@ def _lab(r, q):
     return (r.label_ko.get(q) or r.std.label_ko.get(q) or "").strip()
 
 
-def _local(q):
+_OWN = {"anc": {}, "cache": {}}   # 지금 점검 중인 보고서의 요소별 상위 요소(작성기 ID 꼬리 떼기용)
+
+
+def _set_report(r):
+    """점검할 보고서가 바뀌면 요소별 상위 요소(조상) 표를 새로 만든다."""
+    if _OWN.get("r") is r:
+        return
+    anc = {}
+    for u in r.pre:
+        par = {ch: p for p, lst in r.pre[u].items() for _, ch, _ in lst}
+        for ch in par:
+            s, p = anc.setdefault(ch, set()), par.get(ch)
+            while p and p not in s:
+                s.add(p)
+                p = par.get(p)
+    _OWN.update(r=r, anc=anc, cache={})
+
+
+def _full(q):
+    """요소 ID 전체(꼬리 포함). 부호 점검의 제외 조건은 상위 행 맥락(…IncreaseDecreaseIn…, …FromUsedIn…)도 근거로 쓴다."""
     return q.split(":", 1)[-1]
+
+
+def _local(q):
+    """요소 이름(접두어 제외). 확장요소는 작성기가 ID 뒤에 붙인 'Of+상위 요소명'(소속 항목·표) 꼬리를 떼고 요소 자신의 이름만."""
+    loc = q.split(":", 1)[-1]
+    if q.startswith(("ifrs-full:", "dart:", "dart-gcd:")) or not _OWN["anc"]:
+        return loc
+    hit = _OWN["cache"].get(q)
+    if hit is None:
+        cut = len(loc)
+        for p in _OWN["anc"].get(q, ()):
+            i = loc.find("Of" + p.split(":", 1)[-1])
+            if 0 < i < cut:
+                cut = i
+        hit = _OWN["cache"][q] = loc[:cut]
+    return hit
 
 
 def _stmt(rc):
@@ -297,7 +332,7 @@ def _sign_rule(r, rid, kind, want_bal, why, skip=r"IncreaseDecrease", skip_lab=N
     for f, rc in _facts(r, lambda f, rc: _stmt(rc) == kind):
         v = _num(f["value"])
         a = _attr(r, f["q"])
-        if v is None or v >= 0 or a["balance"] != want_bal or re.search(skip, _local(f["q"])) or \
+        if v is None or v >= 0 or a["balance"] != want_bal or re.search(skip, _full(f["q"])) or \
                 (skip_lab and re.search(skip_lab, _lab(r, f["q"]))):
             continue
         if (rc, f["q"]) not in seen:
@@ -1532,10 +1567,26 @@ def g5b_054(r, std):
     return out
 
 
+SHARE_KO = re.compile(r"주식\s?수|주식[^,()]{0,8}수량|발행주식")
+SHARE_ID = re.compile(r"NumberOf\w*Shares|Shares\w*(Issued|Outstanding)")
+SHARE_NOT_KO = re.compile(r"액면|총액|금액|배당|이익|손익|차이|자본금|일수|\(일\)|적수|선택권|전환권|양도제한|성과보상|선택형|"
+                          r"기타자본|금융상품|가상자산|배출권|tCO2|톤|파생")
+SHARE_NOT_ID = re.compile(r"Option|Unit|Right|Instrument|Incentive|Emission|Crypto|Derivative|Dividend|Days|GrossValue|Difference|Amount")
+
+
+def _is_share_count(r, q):
+    """주식 수 행인지: 요소 자신의 한글명·이름(소속 표 꼬리 제외)으로 판정. 금액·일수·주식 아닌 수량(선택권·배출권 등)은 제외.
+    한글명이 주식 수를 분명히 가리키면 한글 제외어만 본다(ID의 'ConvertibleInstruments'·'UnitShares' 같은 단어로 빼지 않음)."""
+    ko, own = _lab(r, q), _local(q)
+    if SHARE_KO.search(ko):
+        return not SHARE_NOT_KO.search(ko)
+    return bool(SHARE_ID.search(own)) and not (SHARE_NOT_KO.search(ko) or SHARE_NOT_ID.search(own))
+
+
 def g5b_057(r, std):
     return [_f(r, "G5B-057", rc, q, f"주식 수 요소 '{_lab(r, q)}'의 타입이 {_attr(r, q)['type']} — sharesItemType")
             for q, rc in _ext_items_in(r).items()
-            if re.search(r"주식\s?수", _lab(r, q)) or re.search(r"NumberOf\w*Shares", _local(q))
+            if _is_share_count(r, q)
             if "shares" not in _attr(r, q)["type"].lower()
             and re.search(r"decimal|integer|monetary|pure", _attr(r, q)["type"].lower())]
 
@@ -1561,7 +1612,7 @@ def g5b_058(r, std):
         q = f["q"]
         lab = _lab(r, q)
         if v is None or v >= 0 or _attr(r, q)["period_type"] == "instant" or not GAIN_ONLY.search(lab) or GAIN_BOTH.search(lab) or \
-                re.search(r"GainLoss|ProfitLoss|IncomeLoss|IncomeExpense|IncreaseDecrease|Adjustments", _local(q)):
+                re.search(r"GainLoss|ProfitLoss|IncomeLoss|IncomeExpense|IncreaseDecrease|Adjustments", _full(q)):
             continue
         if set(_dims(r, f).values()) - {REPORTED_MEMBER, IF + "CarryingAmountMember"}:
             continue
@@ -2664,7 +2715,7 @@ def g5c_083(r, std):
 def _g(rid, fn, pages, title):
     return (S8, f"{rid} {title}", ERR, lambda r, s, fn=fn, rid=rid: [
         Finding(x.section, f"{rid} {title}", x.level, x.role_code, x.element, x.detail, x.table, x.parent, x.extra)
-        for x in fn(r, s)], f"p{pages} ({rid})", False)
+        for x in (_set_report(r) or fn(r, s))], f"p{pages} ({rid})", False)
 
 
 # ---- 5장 Ⅱ.3~4 축·멤버 구성 ----
