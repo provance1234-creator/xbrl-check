@@ -1,6 +1,6 @@
 # XBRL 작성기준 점검 도구
 
-[![VirusTotal 검사 결과](https://img.shields.io/badge/VirusTotal-%EA%B2%80%EC%82%AC%20%EA%B2%B0%EA%B3%BC%20%EB%B3%B4%EA%B8%B0-blue)](https://www.virustotal.com/gui/file/464041923bf8ad17ead90763aeb555e8c93d5c01430f30f4481e27d6aef9db7c)
+[![VirusTotal 검사 결과](https://img.shields.io/badge/VirusTotal-%EA%B2%80%EC%82%AC%20%EA%B2%B0%EA%B3%BC%20%EB%B3%B4%EA%B8%B0-blue)](https://www.virustotal.com/gui/file/a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0)
 
 DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART XBRL 재무제표 본문·주석 작성 가이드(2026)」와 표준 택사노미가 정한 **작성 구조를 지켰는지**를 점검하고, HTML·CSV 보고서를 만듭니다.
 
@@ -8,9 +8,12 @@ DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART X
 
 ## 사용법
 
-1. 릴리스 첨부파일 `XBRL_check.exe`를 내려받습니다.
-2. 점검할 `.ixd` 파일을 `XBRL_check.exe` 아이콘 위로 끌어다 놓거나, exe를 실행해 파일을 고릅니다.
-3. `.ixd` 파일과 같은 폴더에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어지고, 보고서가 브라우저로 열립니다.
+1. 릴리스 첨부파일 `XBRL_check.zip`을 내려받습니다.
+2. **압축을 풉니다**(파일 오른쪽 클릭 → 모두 압축 풀기). zip 안에서 바로 실행하면 필요한 파일이 없어 오류가 납니다.
+3. 풀린 `XBRL_check` 폴더 안의 `XBRL_check.exe`를 실행해 파일을 고르거나, 점검할 `.ixd` 파일을 `XBRL_check.exe` 위로 끌어다 놓습니다.
+4. `.ixd` 파일과 같은 폴더에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어지고, 보고서가 브라우저로 열립니다.
+
+폴더 안의 다른 파일(DLL, `data`, `rules` 등)은 실행에 필요하니 지우거나 옮기지 마세요. 폴더째 원하는 곳에 두고, 바탕화면에는 바로가기를 만들어 쓰면 편합니다.
 
 `.ixd` 파일은 읽기만 하며 고치지 않습니다.
 
@@ -24,12 +27,12 @@ DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART X
 이 프로그램이 안전한지 직접 확인하실 수 있습니다.
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
-  - https://www.virustotal.com/gui/file/464041923bf8ad17ead90763aeb555e8c93d5c01430f30f4481e27d6aef9db7c
+  - https://www.virustotal.com/gui/file/a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0
   - 소수의 백신이 탐지로 나올 수 있는데, 이는 **기계학습·형식 추정(ML/Static AI) 방식의 오진**입니다(제네릭 이름 `Wacatac.B!ml`, `ML.Attribute` 등). 실제 악성코드는 수십 개가 동시에 탐지합니다.
   - 국내 백신 **안랩 V3 등 대부분의 백신은 "탐지 없음"**입니다.
-- **파일 지문(SHA-256)**: 내려받은 `XBRL_check.exe`가 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
-  - `464041923bf8ad17ead90763aeb555e8c93d5c01430f30f4481e27d6aef9db7c`
-  - 확인 방법(PowerShell): `Get-FileHash XBRL_check.exe -Algorithm SHA256`
+- **파일 지문(SHA-256)**: 내려받은 `XBRL_check.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
+  - `a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0`
+  - 확인 방법(PowerShell): `Get-FileHash XBRL_check.zip -Algorithm SHA256`
   - 위 값과 다르면 받는 중 손상됐거나 변조된 파일이니 쓰지 마세요.
 
 > 참고: 이 프로그램은 파이썬을 기계어로 변환(Nuitka)해 만들었습니다. 이런 형식의 실행 파일을 일부 백신이 드물게 오진하는 경우가 있는데, 바이러스가 아니라 형식을 보고 의심하는 것입니다. 위 VirusTotal 결과로 실제로 깨끗한지 확인하실 수 있습니다.
@@ -54,7 +57,7 @@ pip install -r requirements.txt
 
 ```
 pip install nuitka pefile ordered-set zstandard
-python -m nuitka --onefile --windows-console-mode=disable --enable-plugin=tk-inter ^
+python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-inter ^
   --experimental=force-dependencies-pefile ^
   --nofollow-import-to=ssl,_ssl,socket,_socket,hashlib,_hashlib,bz2,_bz2,lzma,_lzma,compression.zstd,_zstd,decimal,_decimal,_pydecimal,unicodedata,email,http,urllib.request,lxml.objectify,lxml.sax,lxml.builder,_wmi ^
   --include-data-files=data/std_taxonomy.db=data/std_taxonomy.db ^
@@ -63,6 +66,8 @@ python -m nuitka --onefile --windows-console-mode=disable --enable-plugin=tk-int
   --windows-product-name="XBRL Check" --windows-file-version=1.0.0.0 --windows-product-version=1.0.0.0 ^
   --output-filename=XBRL_check.exe run_app.py
 ```
+
+빌드 결과 `run_app.dist` 폴더가 배포본입니다(폴더 이름을 `XBRL_check`로 바꿔 zip으로 묶음).
 
 ### 구성
 
