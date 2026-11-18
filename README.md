@@ -39,8 +39,8 @@ DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 받은 **
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
   - 내려받는 `XBRL_check.zip`(v1.01): https://www.virustotal.com/gui/file/868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9 (탐지 없음, 0/64)
-  - 압축을 푼 `XBRL_check.exe`(v1.01): https://www.virustotal.com/gui/file/fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce
-  - 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지할 수 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.0 검사에서는 안랩 V3를 비롯한 나머지 백신이 모두 "탐지 없음"이었습니다.
+  - 압축을 푼 `XBRL_check.exe`(v1.01): https://www.virustotal.com/gui/file/fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce (탐지 없음, 0/70)
+  - v1.0 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지한 적이 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.01은 Microsoft를 포함한 70개 백신 모두 "탐지 없음"이지만, PC의 백신이 따로 판단해 막을 수도 있습니다.
   - Defender가 파일을 격리하면 Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 "허용"하거나, 소스에서 직접 빌드해 쓰실 수 있습니다(아래 "소스에서 실행·빌드").
 - **파일 지문(SHA-256)**: 내려받은 `XBRL_check.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
   - `868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9`
