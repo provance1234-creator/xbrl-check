@@ -1,6 +1,5 @@
 # XBRL 작성기준 점검 도구
 
-[![VirusTotal 검사 결과](https://img.shields.io/badge/VirusTotal-%EA%B2%80%EC%82%AC%20%EA%B2%B0%EA%B3%BC%20%EB%B3%B4%EA%B8%B0-blue)](https://www.virustotal.com/gui/file/a42d3b087bc39a74762db6960ebb84019509aef0946f81f043c2515e772b7ed0)
 
 DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART XBRL 재무제표 본문·주석 작성 가이드(2026)」와 표준 택사노미가 정한 **작성 구조를 지켰는지**를 점검하고, HTML·CSV 보고서를 만듭니다.
 
