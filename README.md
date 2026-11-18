@@ -7,7 +7,7 @@ DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART X
 
 ## 사용법
 
-1. 릴리스 첨부파일 `XBRL_check.zip`을 내려받습니다.
+1. 릴리스 첨부파일 `XBRL_check_v1.01.zip`(버전마다 파일 이름의 번호가 바뀝니다)을 내려받습니다.
 2. **압축을 풉니다**(파일 오른쪽 클릭 → 모두 압축 풀기). zip 안에서 바로 실행하면 필요한 파일이 없어 오류가 납니다.
 3. 풀린 `XBRL_check` 폴더 안의 `XBRL_check.exe`를 실행해 파일을 고르거나, 점검할 `.ixd` 파일을 `XBRL_check.exe` 위로 끌어다 놓습니다.
 4. `.ixd` 파일과 같은 폴더에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어지고, 보고서가 브라우저로 열립니다.
@@ -38,13 +38,13 @@ DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 받은 **
 이 프로그램이 안전한지 직접 확인하실 수 있습니다.
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
-  - 내려받는 `XBRL_check.zip`(v1.01): https://www.virustotal.com/gui/file/868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9 (탐지 없음, 0/64)
+  - 내려받는 `XBRL_check_v1.01.zip`: https://www.virustotal.com/gui/file/868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9 (탐지 없음, 0/64)
   - 압축을 푼 `XBRL_check.exe`(v1.01): https://www.virustotal.com/gui/file/fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce (탐지 없음, 0/70)
   - v1.0 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지한 적이 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.01은 Microsoft를 포함한 70개 백신 모두 "탐지 없음"이지만, PC의 백신이 따로 판단해 막을 수도 있습니다.
   - Defender가 파일을 격리하면 Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 "허용"하거나, 소스에서 직접 빌드해 쓰실 수 있습니다(아래 "소스에서 실행·빌드").
-- **파일 지문(SHA-256)**: 내려받은 `XBRL_check.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
+- **파일 지문(SHA-256)**: 내려받은 `XBRL_check_v1.01.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
   - `868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9`
-  - 확인 방법(PowerShell): `Get-FileHash XBRL_check.zip -Algorithm SHA256`
+  - 확인 방법(PowerShell): `Get-FileHash XBRL_check_v1.01.zip -Algorithm SHA256`
   - 압축을 푼 `XBRL_check.exe`: `fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce`
   - 위 값과 다르면 받는 중 손상됐거나 변조된 파일이니 쓰지 마세요.
 
