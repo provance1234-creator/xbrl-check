@@ -348,74 +348,48 @@ def check_deprecated(r, std):
 # ---------------------------------------------------------------------------
 # 가이드 p79 2.(4): "dart"와 "ifrs-full" 요소의 개념이 유사한 경우 "ifrs-full" 요소를 우선 적용
 #  (dart 요소는 IFRS 택사노미 업데이트로 유사 개념이 생겨도 과거 데이터 변환 등을 위해 삭제하지 않고 유지). 본문에도 적용된다.
-# ifrs-full(국제 표준)과 dart(금감원 추가) 요소 중 뜻이 같은 쌍. 둘 다 쓰면(본문 dart·주석 ifrs-full 등) 통과,
-# dart만 쓰고 짝인 ifrs-full을 문서 어디에도 안 쓰면 ifrs-full 사용 권장.
-# 쌍은 표준 택사노미에서 고른다: 같은 item·기간유형·데이터타입이고, 한글 라벨(띄어쓰기 무시)
-# 또는 영문 라벨이 같은 것. 장단기(단기·장기)와 유동·비유동은 다른 개념이라 맞추지 않는다
-#  (예: 단기매입채무 ≠ 유동 매입채무, 단기차입금의 증가 ≠ 유동 차입금의 증가).
-# 이름만 비슷하고 뜻이 다른 것은 뺀다: dart:OtherGains(기타이익, gains)는 ifrs-full:OtherIncome(income — 수익 포함)과 범위가 다르다.
-# dart:ChangesInInventories(재고자산의 감소(증가))는 비용의 성격별 분류 주석(D834300)의 제품·재공품 변동이고,
-#  ifrs-full:AdjustmentsForDecreaseIncreaseInInventories는 현금흐름표 조정 항목이라 라벨만 같고 개념이 다르다.
-DART_IFRS_EXCLUDE = {"dart:OtherGains", "dart:ChangesInInventories"}
-
-
-def _ko_core(s):
-    s = re.sub(r"\[.*?\]|\(사용중단\)", "", s or "")
-    return re.sub(r"[\s,·\-()]", "", s)
-
-
-def _en_core(s):
-    s = (s or "").lower().replace("noncurrent", "non-current")
-    return re.sub(r"[^a-z]", "", s)
+# 쌍 목록은 rules/dart_ifrs_pairs.csv — 영문 정의로 의미가 같은지 판정해 만든 표(라벨 글자 비교가 아님).
+#  verdict 같음 → 개선 권장, 유사(범위·부호 등 사람 확인 필요) → 확인 권장.
+#  장단기(단기·장기)와 유동·비유동은 다른 개념이라 쌍으로 두지 않는다.
+# 두 요소를 같은 문서에서 모두 쓰면(본문 dart·주석 ifrs-full 등) 검출하지 않는다.
+DART_IFRS_CSV = "dart_ifrs_pairs.csv"
 
 
 def dart_ifrs_pairs(std):
-    """dart 요소 -> 같은 뜻의 ifrs-full 요소 목록 (std에 캐시)."""
+    """dart 요소 -> [(ifrs-full 요소, verdict, reason)] (std에 캐시). 표준 택사노미에 없는 요소는 건너뛴다."""
     if getattr(std, "_dart_ifrs", None) is not None:
         return std._dart_ifrs
-
-    def usable(q):
-        i = std.concepts[q]
-        return not i["abstract"] and std.kind(q) == "item" and q not in std.deprecated
-
-    def sig(q):
-        i = std.concepts[q]
-        return i["period_type"], i["type"]
-
-    idx = defaultdict(list)
-    for q in std.concepts:
-        if q.startswith("ifrs-full:") and usable(q) and std.label_ko.get(q):
-            idx[("ko", _ko_core(std.label_ko[q]))].append(q)
-            idx[("en", _en_core(std.label_en.get(q)))].append(q)
-    pairs = {}
-    for q in std.concepts:
-        if not q.startswith("dart:") or q in DART_IFRS_EXCLUDE or not usable(q):
-            continue
-        hits = []
-        for k in (("ko", _ko_core(std.label_ko.get(q))), ("en", _en_core(std.label_en.get(q)))):
-            if k[1]:
-                hits += [t for t in idx.get(k, []) if sig(t) == sig(q) and t not in hits]
-        if hits:
-            pairs[q] = hits
-    std._dart_ifrs = pairs
-    return pairs
+    import csv
+    from .common import ROOT
+    pairs = defaultdict(list)
+    path = ROOT / "rules" / DART_IFRS_CSV
+    if path.exists():
+        with open(path, encoding="utf-8-sig") as fp:
+            for row in csv.DictReader(fp):
+                d, t = row["dart"].strip(), row["ifrs_full"].strip()
+                if d in std.concepts and t in std.concepts and t not in std.deprecated:
+                    pairs[d].append((t, (row.get("verdict") or "").strip() or "유사", (row.get("reason") or "").strip()))
+    std._dart_ifrs = dict(pairs)
+    return std._dart_ifrs
 
 
 def check_dart_over_ifrs(r, std):
     used = used_elements(r)
     out = []
     for q, ts in sorted(dart_ifrs_pairs(std).items()):
-        if q not in used or any(t in used for t in ts):
+        if q not in used or any(t in used for t, _, _ in ts):
             continue
-        alt = ", ".join(f"{t}({std.label(t)})" for t in ts)
+        same = any(v == "같음" for _, v, _ in ts)
+        alt = ", ".join(f"{t}({std.label(t)})" for t, _, _ in ts)
+        why = next((w for _, v, w in ts if w), "")
+        detail = (f"dart 요소 '{std.label(q)}' — 개념이 {'같은' if same else '유사한'} ifrs-full 요소 {alt} 우선 적용 (가이드 p79)"
+                  + (f". {why}" if why else "") + ". 같은 문서에서 두 요소를 모두 쓰면 검출하지 않음")
         out += _per_role(used, q, lambda rc: Finding(
-            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q,
-            f"dart 요소 '{std.label(q)}' — 개념이 같은 ifrs-full 요소 {alt} 우선 적용 (가이드 p79). "
-            "같은 문서에서 두 요소를 모두 쓰면 검출하지 않음"))
+            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR if same else REV, rc, q, detail))
     return out
 
 
-RECV_LA_HINT ="장부금액 축의 손상차손누계액 [구성요소] + 금융자산(FinancialAssets) 기초·기말 행으로 작성 (작성가이드 p127)"
+RECV_LA_HINT = "장부금액 축의 손상차손누계액 [구성요소] + 금융자산(FinancialAssets) 기초·기말 행으로 작성 (작성가이드 p127)"
 RECV_LA_TABLE = "dart:DisclosureOfReconciliationOfChangesInLossAllowanceAndExplanationOfChangesInGrossCarryingAmountForReceivablesTable"
 FIN_CLASS_AXES = {"ifrs-full:ClassesOfFinancialInstrumentsAxis", "ifrs-full:ClassesOfFinancialAssetsAxis"}
 

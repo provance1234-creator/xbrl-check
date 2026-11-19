@@ -1,0 +1,11 @@
+dart,ifrs_full,verdict,reason
+dart:FairValueOfPlanAssets,ifrs-full:PlanAssetsAtFairValue,같음,사외적립자산의 공정가치로 개념 동일
+dart:PresentValueOfDefinedBenefitObligation,ifrs-full:DefinedBenefitObligationAtPresentValue,같음,확정급여채무의 현재가치로 개념 동일
+dart:WritedownsOfInventories,ifrs-full:InventoryWritedown2011,같음,재고자산 평가손실(감액)로 개념 동일
+dart:ReversalsOfInventories,ifrs-full:ReversalOfInventoryWritedown,같음,재고자산 평가손실환입으로 개념 동일
+dart:NonCurrentProvisionsForReturnedGoods,ifrs-full:NoncurrentRefundsProvision,같음,비유동 반품(환불)충당부채로 개념 동일
+dart:NonCurrentFairValueFinancialAsset,ifrs-full:NoncurrentFinancialAssetsAtFairValueThroughProfitOrLoss,같음,비유동 당기손익인식금융자산으로 개념 동일
+dart:CurrentAvailableForSaleFinancialAssets,ifrs-full:CurrentFinancialAssetsAvailableforsale,같음,유동 매도가능금융자산으로 개념 동일
+dart:NonCurrentAvailableForSaleFinancialAssets,ifrs-full:NoncurrentFinancialAssetsAvailableforsale,같음,비유동 매도가능금융자산으로 개념 동일
+dart:CurrentFinancialAssetsHeldToMaturity,ifrs-full:CurrentHeldtomaturityInvestments,같음,유동 만기보유금융자산으로 개념 동일
+dart:NonCurrentFinancialAssetsHeldToMaturity,ifrs-full:NoncurrentHeldtomaturityInvestments,같음,비유동 만기보유금융자산으로 개념 동일
