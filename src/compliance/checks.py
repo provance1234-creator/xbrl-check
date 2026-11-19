@@ -35,7 +35,8 @@ RISK_IDS = {"G5C-001", "G5C-010", "G5B-061", "G5C-050", "G5-002", "G4-021", "G5B
 #  총액요소 오용(교재 33쪽 정정 대상 메일 3번)·확장요소 영문명(55쪽)은 2단계 유지.
 RISK_IDS |= {"G5C-018", "G5B-056"}
 IMP = "개선"
-IMPROVE_CARDS = {"같은 축 아래 동일 멤버 중복", "공시금액 멤버의 위치"}
+IMPROVE_CARDS = {"같은 축 아래 동일 멤버 중복", "공시금액 멤버의 위치",
+                 "같은 뜻 ifrs-full 요소 대신 dart 요소 사용"}   # 가이드 p79 '우선 적용함'(의무 문구), 위반이 아닌 권장 성격
 IMPROVE_IDS = {
     "G4-001", "G4-010", "G4-011", "G4-013", "G4-015", "G4-019", "G4-027", "G4-029", "G4-030", "G4-032",
     "G5-019", "G5-024", "G5-031", "G5-033", "G5-039",
@@ -345,6 +346,8 @@ def check_deprecated(r, std):
 # ---------------------------------------------------------------------------
 # 같은 뜻의 ifrs-full 요소가 있는데 dart 요소만 사용
 # ---------------------------------------------------------------------------
+# 가이드 p79 2.(4): "dart"와 "ifrs-full" 요소의 개념이 유사한 경우 "ifrs-full" 요소를 우선 적용
+#  (dart 요소는 IFRS 택사노미 업데이트로 유사 개념이 생겨도 과거 데이터 변환 등을 위해 삭제하지 않고 유지). 본문에도 적용된다.
 # ifrs-full(국제 표준)과 dart(금감원 추가) 요소 중 뜻이 같은 쌍. 둘 다 쓰면(본문 dart·주석 ifrs-full 등) 통과,
 # dart만 쓰고 짝인 ifrs-full을 문서 어디에도 안 쓰면 ifrs-full 사용 권장.
 # 쌍은 표준 택사노미에서 고른다: 같은 item·기간유형·데이터타입이고, 한글 라벨(띄어쓰기 무시)
@@ -406,10 +409,9 @@ def check_dart_over_ifrs(r, std):
             continue
         alt = ", ".join(f"{t}({std.label(t)})" for t in ts)
         out += _per_role(used, q, lambda rc: Finding(
-            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", REV, rc, q,
-            f"'{std.label(q)}'은 ifrs-full 요소와 뜻이 같음 → {alt} 사용 권장 "
-            "(같은 문서에서 두 요소를 모두 쓰면 검출하지 않음)",
-            extra={"basis": "약함"}))
+            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q,
+            f"dart 요소 '{std.label(q)}' — 개념이 같은 ifrs-full 요소 {alt} 우선 적용 (가이드 p79). "
+            "같은 문서에서 두 요소를 모두 쓰면 검출하지 않음"))
     return out
 
 
@@ -1771,7 +1773,7 @@ CHECKS = [
     (S1, "초과적립액(과소적립액) 단독 사용", REV, check_surplus, "p251", True),
     (S1, "재고자산 표의 장부금액 축 구성", ERR, check_inventory, "p128·160~165·169", True),
     (S1, "유동·비유동을 축으로 구분", ERR, check_cur_noncur, "p118~119·140", True),
-    (S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", REV, check_dart_over_ifrs, "택사노미(같은 라벨의 ifrs-full 요소)", True),
+    (S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, check_dart_over_ifrs, "p79", True),
     (S2, "사용중단 표시 요소", ERR, check_deprecated, "택사노미 (사용중단) 라벨", True),
     (S2, "IAS 39 대손충당금 변동표", ERR, check_allowance_table, "IFRS 9 전환(택사노미)", True),
     (S2, "금융자산 손상차손 축(만료 예정)", REV, check_impairment_axis, "p103·182", True),
