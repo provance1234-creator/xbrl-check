@@ -354,6 +354,9 @@ def check_deprecated(r, std):
 #  본문 서식 기본 요소가 대거 걸리는 오탐이었다. 확인된 짝은 verdict를 같음으로 올려 검출 대상에 넣는다.
 #  장단기(단기·장기)와 유동·비유동은 다른 개념이라 쌍으로 두지 않는다.
 # 두 요소를 같은 문서에서 모두 쓰면(본문 dart·주석 ifrs-full 등) 검출하지 않는다.
+# 검출은 그 목차(주석)의 표준 서식에 짝 ifrs-full 요소가 있고 dart 요소는 없는 곳에서만 한다.
+#  표준 서식이 dart 요소를 주는 곳(예: 기타수익 주석의 수입임대료, 현금흐름표 본문의 관계기업 투자 취득)이나
+#  두 요소 모두 서식에 없는 곳은 ifrs-full로 바꾸라고 하면 서식과 어긋나므로 띄우지 않는다.
 DART_IFRS_CSV = "dart_ifrs_pairs.csv"
 
 
@@ -385,9 +388,12 @@ def check_dart_over_ifrs(r, std):
         alt = ", ".join(f"{t}({std.label(t)})" for t, _ in same)
         why = next((w for _, w in same if w), "")
         detail = (f"dart 요소 '{std.label(q)}' — 개념이 같은 ifrs-full 요소 {alt} 우선 적용 (가이드 p79)"
-                  + (f". {why}" if why else "") + ". 같은 문서에서 두 요소를 모두 쓰면 검출하지 않음")
-        out += _per_role(used, q, lambda rc: Finding(
-            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q, detail))
+                  + (f". {why}" if why else "") + ". 이 목차의 표준 서식에 있는 요소는 ifrs-full")
+        for rc in sorted(x for x in used[q] if not x.startswith("(")):
+            tmpl = std.role_elems.get(rc) or std.role_elems.get(rc[:-1] + "0") or set()
+            if q in tmpl or not any(t in tmpl for t, _ in same):
+                continue
+            out.append(Finding(S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q, detail))
     return out
 
 

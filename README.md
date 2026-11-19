@@ -96,7 +96,7 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
 ## 변경 내역
 
 - **v1.02 (준비 중, 아직 배포 전)**
-  - 새 점검: 개념이 같은 ifrs-full 요소가 있는데 dart 요소만 쓴 경우 'ifrs-full 우선 적용' 안내(작성가이드 p79, 개선 권장). 같은 문서에서 두 요소를 모두 쓰면(예: 본문 dart, 주석 ifrs-full) 검출하지 않음
+  - 새 점검: 개념이 같은 ifrs-full 요소가 있는데 dart 요소만 쓴 경우 'ifrs-full 우선 적용' 안내(작성가이드 p79, 개선 권장). 그 목차의 표준 서식에 ifrs-full 요소가 있고 dart 요소는 없는 곳에서만 검출하며, 같은 문서에서 두 요소를 모두 쓰면(예: 본문 dart, 주석 ifrs-full) 검출하지 않음
     - 짝 목록은 `rules/dart_ifrs_pairs.csv`(196쌍: 같음 63, 유사 133). 라벨 글자가 아니라 영문 정의로 뜻이 같은지 판정해 만든 표이며, 검출은 '같음' 짝만 하고, 뜻은 비슷하나 범위·부호가 다른 짝(유사, 예: 이익만 담는 dart 요소 vs 순액 ifrs-full 요소)은 오탐이 많아 목록에만 남김
     - 현금흐름·판관비 표 전용 dart 요소인데 짝 ifrs-full 요소가 그 표에 없는 경우는 짝에서 뺌(다른 점검과 상충 방지)
     - 장단기(단기·장기)와 유동·비유동은 다른 개념이라 짝으로 보지 않음
