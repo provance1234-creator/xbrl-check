@@ -351,7 +351,9 @@ def check_deprecated(r, std):
 # 또는 영문 라벨이 같은 것. 장단기(단기·장기)와 유동·비유동은 다른 개념이라 맞추지 않는다
 #  (예: 단기매입채무 ≠ 유동 매입채무, 단기차입금의 증가 ≠ 유동 차입금의 증가).
 # 이름만 비슷하고 뜻이 다른 것은 뺀다: dart:OtherGains(기타이익, gains)는 ifrs-full:OtherIncome(income — 수익 포함)과 범위가 다르다.
-DART_IFRS_EXCLUDE = {"dart:OtherGains"}
+# dart:ChangesInInventories(재고자산의 감소(증가))는 비용의 성격별 분류 주석(D834300)의 제품·재공품 변동이고,
+#  ifrs-full:AdjustmentsForDecreaseIncreaseInInventories는 현금흐름표 조정 항목이라 라벨만 같고 개념이 다르다.
+DART_IFRS_EXCLUDE = {"dart:OtherGains", "dart:ChangesInInventories"}
 
 
 def _ko_core(s):
