@@ -91,10 +91,15 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
 | `src/compliance/guide_checks.py` | 작성 가이드 규칙별 점검(함수 하나 = 규칙 하나) |
 | `src/compliance/examples.py` | 가이드 모범사례에 나온 구조는 허용 |
 | `src/compliance/report.py` | HTML 보고서 |
-| `rules/` | 가이드 모범사례의 축·멤버·요소 목록(쪽 번호) |
+| `rules/` | 가이드 모범사례의 축·멤버·요소 목록(쪽 번호), dart·ifrs-full 같은 뜻 짝 목록(`dart_ifrs_pairs.csv`) |
 
 ## 변경 내역
 
+- **v1.02 (준비 중, 아직 배포 전)**
+  - 새 점검: 개념이 같은 ifrs-full 요소가 있는데 dart 요소만 쓴 경우 'ifrs-full 우선 적용' 안내(작성가이드 p79, 개선 권장). 같은 문서에서 두 요소를 모두 쓰면(예: 본문 dart, 주석 ifrs-full) 검출하지 않음
+    - 짝 목록은 `rules/dart_ifrs_pairs.csv`. 라벨 글자가 아니라 영문 정의로 뜻이 같은지 판정해 만든 표이며, 뜻은 같으나 범위·부호를 확인해야 하는 짝은 '확인 권장'
+    - 장단기(단기·장기)와 유동·비유동은 다른 개념이라 짝으로 보지 않음
+  - 오탐 수정: '총액 요소를 순액 자리에 사용' 점검이 단기·장기 총액 요소(단기매출채권·장기선급금 등)에 유동·비유동 요소를 대체 요소로 안내하던 것
 - **v1.01**
   - DART 공시 XBRL zip(`…_IFRS(원문XBRL)(…).zip`)을 압축을 풀지 않고 바로 점검
   - 오탐 수정: '주식 수는 Shares 타입' 점검이 주식 수가 아닌 요소(배당금·액면총액·일수 등)를 주식 수로 잘못 인식하던 것
