@@ -349,7 +349,9 @@ def check_deprecated(r, std):
 # 가이드 p79 2.(4): "dart"와 "ifrs-full" 요소의 개념이 유사한 경우 "ifrs-full" 요소를 우선 적용
 #  (dart 요소는 IFRS 택사노미 업데이트로 유사 개념이 생겨도 과거 데이터 변환 등을 위해 삭제하지 않고 유지). 본문에도 적용된다.
 # 쌍 목록은 rules/dart_ifrs_pairs.csv — 영문 정의로 의미가 같은지 판정해 만든 표(라벨 글자 비교가 아님).
-#  verdict 같음 → 개선 권장, 유사(범위·부호 등 사람 확인 필요) → 확인 권장.
+#  verdict 같음만 검출(개선 권장). 유사(이익만/손실만 vs 순액, 범위·부호 차이 등)는 개념이 같다고 보기 어려워
+#  검출하지 않고 목록에만 남긴다 — 실제 공시(일신방직 3분기) 시험에서 영업이익·이자수익(금융수익)·외화환산손익 조정 등
+#  본문 서식 기본 요소가 대거 걸리는 오탐이었다. 확인된 짝은 verdict를 같음으로 올려 검출 대상에 넣는다.
 #  장단기(단기·장기)와 유동·비유동은 다른 개념이라 쌍으로 두지 않는다.
 # 두 요소를 같은 문서에서 모두 쓰면(본문 dart·주석 ifrs-full 등) 검출하지 않는다.
 DART_IFRS_CSV = "dart_ifrs_pairs.csv"
@@ -377,15 +379,15 @@ def check_dart_over_ifrs(r, std):
     used = used_elements(r)
     out = []
     for q, ts in sorted(dart_ifrs_pairs(std).items()):
-        if q not in used or any(t in used for t, _, _ in ts):
+        same = [(t, w) for t, v, w in ts if v == "같음"]
+        if q not in used or not same or any(t in used for t, _, _ in ts):
             continue
-        same = any(v == "같음" for _, v, _ in ts)
-        alt = ", ".join(f"{t}({std.label(t)})" for t, _, _ in ts)
-        why = next((w for _, v, w in ts if w), "")
-        detail = (f"dart 요소 '{std.label(q)}' — 개념이 {'같은' if same else '유사한'} ifrs-full 요소 {alt} 우선 적용 (가이드 p79)"
+        alt = ", ".join(f"{t}({std.label(t)})" for t, _ in same)
+        why = next((w for _, w in same if w), "")
+        detail = (f"dart 요소 '{std.label(q)}' — 개념이 같은 ifrs-full 요소 {alt} 우선 적용 (가이드 p79)"
                   + (f". {why}" if why else "") + ". 같은 문서에서 두 요소를 모두 쓰면 검출하지 않음")
         out += _per_role(used, q, lambda rc: Finding(
-            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR if same else REV, rc, q, detail))
+            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q, detail))
     return out
 
 
