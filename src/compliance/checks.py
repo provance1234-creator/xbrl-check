@@ -184,9 +184,9 @@ def net_of_gross(std, q):
     for c in (f"{p}:{base}Net", f"{p}:{base}", f"ifrs-full:{base}", f"dart:{base}Net", f"dart:{base}"):
         if c != q and c in std.concepts and std.kind(c) == "item" and c not in std.deprecated:
             return c
-    # 라벨: 'X, 순액' 또는 'X'(공백 무시). dart의 단기·장기 계정은 ifrs-full 유동·비유동 요소가 순액 개념(예: 단기매출채권 → 유동 매출채권)
+    # 라벨: 'X, 순액' 또는 'X'(공백 무시). 장단기와 유동·비유동은 다른 개념이라 단기매출채권(총액)을 유동 매출채권으로 잇지 않는다
     core = re.sub(r"\s", "", re.sub(r"(,\s*|\s)총액$", "", std.label_ko.get(q, "")))
-    want = {core, core + ",순액", re.sub(r"^단기", "유동", core), re.sub(r"^장기", "비유동", core)}
+    want = {core, core + ",순액"}
     for c, l in std.label_ko.items():
         if c != q and re.sub(r"\s", "", l) in want and std.kind(c) == "item" and c not in std.deprecated:
             return c
@@ -347,24 +347,20 @@ def check_deprecated(r, std):
 # ---------------------------------------------------------------------------
 # ifrs-full(국제 표준)과 dart(금감원 추가) 요소 중 뜻이 같은 쌍. 둘 다 쓰면(본문 dart·주석 ifrs-full 등) 통과,
 # dart만 쓰고 짝인 ifrs-full을 문서 어디에도 안 쓰면 ifrs-full 사용 권장.
-# 쌍은 표준 택사노미에서 고른다: 같은 item·기간유형·데이터타입이고, 한글 라벨(띄어쓰기·'단기→유동'·'장기→비유동' 무시)
-# 또는 영문 라벨(short-term→current, long-term→non-current 무시)이 같은 것.
+# 쌍은 표준 택사노미에서 고른다: 같은 item·기간유형·데이터타입이고, 한글 라벨(띄어쓰기 무시)
+# 또는 영문 라벨이 같은 것. 장단기(단기·장기)와 유동·비유동은 다른 개념이라 맞추지 않는다
+#  (예: 단기매입채무 ≠ 유동 매입채무, 단기차입금의 증가 ≠ 유동 차입금의 증가).
 # 이름만 비슷하고 뜻이 다른 것은 뺀다: dart:OtherGains(기타이익, gains)는 ifrs-full:OtherIncome(income — 수익 포함)과 범위가 다르다.
 DART_IFRS_EXCLUDE = {"dart:OtherGains"}
 
 
 def _ko_core(s):
     s = re.sub(r"\[.*?\]|\(사용중단\)", "", s or "")
-    s = re.sub(r"^단기", "유동", s)
-    s = re.sub(r"^장기", "비유동", s)
     return re.sub(r"[\s,·\-()]", "", s)
 
 
 def _en_core(s):
-    s = (s or "").lower()
-    for a, b in (("short-term", "current"), ("short term", "current"), ("long-term", "non-current"),
-                 ("long term", "non-current"), ("noncurrent", "non-current")):
-        s = s.replace(a, b)
+    s = (s or "").lower().replace("noncurrent", "non-current")
     return re.sub(r"[^a-z]", "", s)
 
 
