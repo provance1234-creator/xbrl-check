@@ -878,8 +878,12 @@ def check_cf_dedicated_out(r, std):
                 rep = _cf_replacement(std, n, exclusive)
                 where = "자본변동표" if sce else "손익 표"
                 why = (f"현금흐름 전용요소를 {where}에서 사용 — " +
-                       (f"표준요소 {rep} 사용" if rep else "현금흐름표 밖에서 쓸 표준요소 확인"))
-                basis = "명확" if rep else "약함"
+                       (f"표준요소 {rep} 사용" if rep else
+                        "자본변동표 요소(D610000·D800400에서 검색) 사용" if sce else "현금흐름표 밖에서 쓸 표준요소 확인"))
+                if sce:
+                    why += " (설명회 교재 205쪽: 자본변동표·현금흐름표 항목 혼용 금지)"
+                # 자본변동표에 현금흐름 요소는 요소 선택 오류 — 대체 요소를 못 찾아도 근거는 명확
+                basis = "명확" if (rep or sce) else "약함"
             elif fin_only and PL_NAME_RE.search(loc):
                 why, basis = "금융업 현금흐름 목차에만 있는 요소를 손익 표에서 사용 — 일반 손익 요소 확인", "약함"
             else:
