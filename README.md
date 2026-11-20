@@ -38,14 +38,14 @@ DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 받은 **
 이 프로그램이 안전한지 직접 확인하실 수 있습니다.
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
-  - 내려받는 `XBRL_check_v1.02.zip`: https://www.virustotal.com/gui/file/dd554846bac1b21e3319cf3584e1ce0d3670a315d98cacb56a109c58523210d4
-  - 압축을 푼 `XBRL_check.exe`(v1.02): https://www.virustotal.com/gui/file/0a8a4dec2be84d67f4f5004d057f4a30ce7b21480f9a31e0d814f5ea820a3dfc
+  - 내려받는 `XBRL_check_v1.02.zip`: https://www.virustotal.com/gui/file/4636b377900018856e5362bc0f8544fbe9321b3df7cf7b3a726296fc0442f380
+  - 압축을 푼 `XBRL_check.exe`(v1.02): https://www.virustotal.com/gui/file/87a9e109d52fcf7c6b3d30532f3b47214988d9aa034bce433aca0825be3bfeb7
   - v1.0 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지한 적이 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.01부터는 Microsoft를 포함한 백신 모두 "탐지 없음"이었지만, PC의 백신이 따로 판단해 막을 수도 있습니다.
   - Defender가 파일을 격리하면 Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 "허용"하거나, 소스에서 직접 빌드해 쓰실 수 있습니다(아래 "소스에서 실행·빌드").
 - **파일 지문(SHA-256)**: 내려받은 `XBRL_check_v1.02.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
-  - `dd554846bac1b21e3319cf3584e1ce0d3670a315d98cacb56a109c58523210d4`
+  - `4636b377900018856e5362bc0f8544fbe9321b3df7cf7b3a726296fc0442f380`
   - 확인 방법(PowerShell): `Get-FileHash XBRL_check_v1.02.zip -Algorithm SHA256`
-  - 압축을 푼 `XBRL_check.exe`: `0a8a4dec2be84d67f4f5004d057f4a30ce7b21480f9a31e0d814f5ea820a3dfc`
+  - 압축을 푼 `XBRL_check.exe`: `87a9e109d52fcf7c6b3d30532f3b47214988d9aa034bce433aca0825be3bfeb7`
   - 위 값과 다르면 받는 중 손상됐거나 변조된 파일이니 쓰지 마세요.
 
 > 참고: 이 프로그램은 파이썬을 기계어로 변환(Nuitka)해 만들었습니다. 이런 형식의 실행 파일을 일부 백신이 드물게 오진하는 경우가 있는데, 바이러스가 아니라 형식을 보고 의심하는 것입니다. 위 VirusTotal 결과와 공개된 소스로 직접 확인하실 수 있습니다.
