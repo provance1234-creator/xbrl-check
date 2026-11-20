@@ -563,11 +563,11 @@ def substitute_member(std, ax, m):
     """같은 축에서 바꿔 쓸 표준 멤버. (멤버, 근거, 확실 여부) 또는 None."""
     lc, nc = _lab_core(std.label(m)), _name_core(m)
     # ① 가이드 모범사례에서 이 축에 쓴 멤버 중 같은 뜻
-    for g, pages in std.guide_pairs.get(ax, {}).items():
+    for g, pages in sorted(std.guide_pairs.get(ax, {}).items()):
         if g != m and (_lab_core(std.label(g)) == lc or _name_core(g) == nc):
             return g, "작성가이드 p" + "·".join(map(str, sorted(pages))) + " 모범사례", True
-    pool = [x for x in std.axis_members[ax] | std.pre_axis_members[ax]
-            if x != m and x.endswith("Member") and x not in std.deprecated]
+    pool = sorted(x for x in std.axis_members[ax] | std.pre_axis_members[ax]
+                  if x != m and x.endswith("Member") and x not in std.deprecated)   # 실행마다 같은 후보가 나오게 정렬
     # ② 택사노미 같은 축 멤버 중 이름이 사실상 같음
     for x in pool:
         if _lab_core(std.label(x)) == lc or _name_core(x) == nc:
@@ -1864,6 +1864,8 @@ def run_all(r, std, frame=False, progress=None):
             fs = fn(r, std)
         except Exception as e:  # 검사 하나가 실패해도 나머지는 돌린다
             fs = [Finding(sec, card, "실행오류", "", "", f"{type(e).__name__}: {e}")]
+        # 검출 순서를 실행마다 같게(집합 순회 순서에 따라 바뀌지 않도록)
+        fs = sorted(fs, key=lambda f: (f.role_code or "", f.element or "", f.detail or ""))
         for f in fs:
             f.extra.setdefault("basis", "명확")
             # 가이드 근거가 약한 건은 '수정 필요'로 단정하지 않고 '확인 권장'으로 내린다

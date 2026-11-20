@@ -188,6 +188,9 @@ def main():
     root = tk.Tk()
     root.withdraw()
     try:
+        from .update_check import check_and_offer
+        if check_and_offer(root):    # 새 버전 다운로드 페이지를 열었으면 여기서 끝낸다
+            return
         dropped = len(sys.argv) > 1
         while True:
             src = sys.argv[1] if dropped else pick_source(root)

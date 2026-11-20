@@ -7,7 +7,7 @@ DART XBRL 작성기로 만든 `.ixd` 파일을 읽어, 금융감독원 「DART X
 
 ## 사용법
 
-1. 릴리스 첨부파일 `XBRL_check_v1.01.zip`(버전마다 파일 이름의 번호가 바뀝니다)을 내려받습니다.
+1. 릴리스 첨부파일 `XBRL_check_v1.02.zip`(버전마다 파일 이름의 번호가 바뀝니다)을 내려받습니다.
 2. **압축을 풉니다**(파일 오른쪽 클릭 → 모두 압축 풀기). zip 안에서 바로 실행하면 필요한 파일이 없어 오류가 납니다.
 3. 풀린 `XBRL_check` 폴더 안의 `XBRL_check.exe`를 실행해 파일을 고르거나, 점검할 `.ixd` 파일을 `XBRL_check.exe` 위로 끌어다 놓습니다.
 4. `.ixd` 파일과 같은 폴더에 `점검_<회사명>_<기준일>.html`과 `.csv`가 만들어지고, 보고서가 브라우저로 열립니다.
@@ -38,14 +38,14 @@ DART에 공시된 다른 회사의 XBRL도 점검할 수 있습니다. 받은 **
 이 프로그램이 안전한지 직접 확인하실 수 있습니다.
 
 - **VirusTotal 검사 결과**: 전 세계 여러 백신으로 검사한 공개 결과입니다. 누구나 아래에서 직접 확인할 수 있습니다.
-  - 내려받는 `XBRL_check_v1.01.zip`: https://www.virustotal.com/gui/file/868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9 (탐지 없음, 0/64)
-  - 압축을 푼 `XBRL_check.exe`(v1.01): https://www.virustotal.com/gui/file/fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce (탐지 없음, 0/70)
-  - v1.0 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지한 적이 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.01은 Microsoft를 포함한 70개 백신 모두 "탐지 없음"이지만, PC의 백신이 따로 판단해 막을 수도 있습니다.
+  - 내려받는 `XBRL_check_v1.02.zip`: https://www.virustotal.com/gui/file/dd554846bac1b21e3319cf3584e1ce0d3670a315d98cacb56a109c58523210d4
+  - 압축을 푼 `XBRL_check.exe`(v1.02): https://www.virustotal.com/gui/file/0a8a4dec2be84d67f4f5004d057f4a30ce7b21480f9a31e0d814f5ea820a3dfc
+  - v1.0 실행 파일은 Microsoft Defender가 `Trojan:Win32/Wacatac.B!ml`로 탐지한 적이 있습니다. 끝의 `!ml`은 **기계학습 추정**이라는 표시로, 파이썬을 변환해 만든 실행 파일에서 자주 나오는 오진입니다. v1.01부터는 Microsoft를 포함한 백신 모두 "탐지 없음"이었지만, PC의 백신이 따로 판단해 막을 수도 있습니다.
   - Defender가 파일을 격리하면 Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 "허용"하거나, 소스에서 직접 빌드해 쓰실 수 있습니다(아래 "소스에서 실행·빌드").
-- **파일 지문(SHA-256)**: 내려받은 `XBRL_check_v1.01.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
-  - `868e85e9da0599d6a2eee2d455fd26438839374eadd604547a703394bca7f2b9`
-  - 확인 방법(PowerShell): `Get-FileHash XBRL_check_v1.01.zip -Algorithm SHA256`
-  - 압축을 푼 `XBRL_check.exe`: `fbe2f4c4d990e11a9193d1a8105147a2d6333ada6d9ca51d9369b26f37102bce`
+- **파일 지문(SHA-256)**: 내려받은 `XBRL_check_v1.02.zip`이 위변조 없이 원본 그대로인지 아래 값과 대조하세요.
+  - `dd554846bac1b21e3319cf3584e1ce0d3670a315d98cacb56a109c58523210d4`
+  - 확인 방법(PowerShell): `Get-FileHash XBRL_check_v1.02.zip -Algorithm SHA256`
+  - 압축을 푼 `XBRL_check.exe`: `0a8a4dec2be84d67f4f5004d057f4a30ce7b21480f9a31e0d814f5ea820a3dfc`
   - 위 값과 다르면 받는 중 손상됐거나 변조된 파일이니 쓰지 마세요.
 
 > 참고: 이 프로그램은 파이썬을 기계어로 변환(Nuitka)해 만들었습니다. 이런 형식의 실행 파일을 일부 백신이 드물게 오진하는 경우가 있는데, 바이러스가 아니라 형식을 보고 의심하는 것입니다. 위 VirusTotal 결과와 공개된 소스로 직접 확인하실 수 있습니다.
@@ -76,7 +76,8 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
   --include-data-files=data/std_taxonomy.db=data/std_taxonomy.db ^
   --include-data-files=rules/guide_axis_members.csv=rules/guide_axis_members.csv ^
   --include-data-files=rules/guide_examples.csv=rules/guide_examples.csv ^
-  --windows-product-name="XBRL Check" --windows-file-version=1.0.1.0 --windows-product-version=1.0.1.0 ^
+  --include-data-files=rules/dart_ifrs_pairs.csv=rules/dart_ifrs_pairs.csv ^
+  --windows-product-name="XBRL Check" --windows-file-version=1.0.2.0 --windows-product-version=1.0.2.0 ^
   --output-filename=XBRL_check.exe run_app.py
 ```
 
@@ -95,11 +96,21 @@ python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-
 
 ## 변경 내역
 
-- **v1.02 (준비 중, 아직 배포 전)**
-  - 새 점검: 개념이 같은 ifrs-full 요소가 있는데 dart 요소만 쓴 경우 'ifrs-full 우선 적용' 안내(작성가이드 p79, 개선 권장). dart 요소를 쓴 목차의 표준 서식이 그 자리에 dart 요소를 준 경우(짝 ifrs-full이 서식에 없거나 상위 행이 다름, 가이드 p134 가.) 통과하고 나머지는 검출(같은 쪽 어디서든 dart 요소가 맞게 쓰였으면 다른 곳도 그것을 따른 것으로 봄)하며, 같은 쪽(연결 또는 별도)에서 두 요소를 모두 쓰면 검출하지 않음(본문·주석은 함께 보고 연결·별도는 따로 봄)
-    - 짝 목록은 `rules/dart_ifrs_pairs.csv`(63쌍). 데이터 타입·차변/대변·기간유형이 모두 같고, 영문 라벨·정의로 보아 표현이나 표시 위치(금융수익·판관비 등)만 다른 쌍만 둠. 범위가 다른 쌍, 이익만 vs 이익(손실), 총액 vs 순액, 재무활동 총액 표시(가이드 p91)와 어긋나는 쌍, 가이드 모범사례가 dart 요소를 쓰는 경우, ifrs-full 요소가 금융업 전용인 경우(비금융 > 금융업)는 짝으로 보지 않으며, ifrs-full 요소 하나에는 dart 요소 하나만 짝지음
-    - 현금흐름·판관비 표 전용 dart 요소인데 짝 ifrs-full 요소가 그 표에 없는 경우는 짝에서 뺌(다른 점검과 상충 방지)
-    - 장단기(단기·장기)와 유동·비유동은 다른 개념이라 짝으로 보지 않음
+- **v1.02**
+  - 실행하면 새 버전이 있는지 확인하고, 있으면 다운로드 페이지를 열지 묻습니다.
+    - GitHub에 최신 버전 번호만 물어봅니다. 점검하는 파일의 내용은 어디로도 보내지 않습니다.
+    - 프로그램이 스스로 파일을 받거나 자신을 바꾸지 않습니다. 새 버전은 열린 페이지에서 직접 받으세요.
+    - 인터넷이 없거나 막혀 있으면 확인을 건너뛰고 그대로 점검합니다.
+    - 확인을 끄려면 환경 변수 `XBRL_CHECK_NO_UPDATE=1`을 설정하세요.
+  - 새 점검: 같은 뜻의 ifrs-full 요소가 있는데 dart 요소만 쓴 경우 'ifrs-full 우선 적용'을 안내합니다(작성가이드 p79·p134, 3단계).
+    - 짝 목록은 `rules/dart_ifrs_pairs.csv`(63쌍)입니다. 데이터 타입·차변/대변·기간유형이 같고, 영문 이름·정의로 보아 뜻이 같은 것(표현만 다르거나 dart 쪽에 '금융수익'·'판관비' 같은 소속 표시만 붙은 것)만 둡니다.
+    - 범위가 다른 것, 이익만 vs 이익(손실), 총액 vs 순액, 가이드 모범사례가 dart 요소를 쓰는 것, ifrs-full 요소가 금융업 전용인 것은 짝으로 보지 않습니다.
+    - 연결·별도는 따로, 본문·주석은 함께 봅니다. 같은 쪽에서 짝 ifrs-full 요소도 쓰고 있으면 검출하지 않습니다.
+    - dart 요소를 쓴 목차의 표준 서식이 그 자리에 dart 요소를 준 경우(가이드 p134 가. '용도에 맞는 요소')와, 그렇게 쓴 dart 요소를 다른 곳에서 그대로 따라 쓴 경우는 검출하지 않습니다.
+  - 안내 문구 수정: '이익 행에 음수 금지' 점검에서 수익 요소(공사수익 등)에 음수를 쓴 경우 "손실 행에 양수로" 대신 "수익 요소는 음수로 쓰지 않음. 변동표의 감소라면 변동 전용 행 사용"으로 안내합니다.
+  - 같은 파일을 다시 점검하면 일부 안내(후보 행·비슷한 멤버 목록)나 목록 순서가 달라지던 것을 고쳤습니다. 이제 언제 점검해도 결과 파일이 같습니다('표준 목차의 한정 행' 점검은 회사가 이미 쓴 행을 우선 안내).
+  - 오탐 수정: '이익 행에 음수 금지' 점검이 이름 중간에만 '이익·수익·차익'이 들어간 행(예: '과세되지 않는 수익의 법인세효과', '단기간 매매차익을 위해 보유하는 배출권', '이연수익'), 앞에 '(-)'가 붙은 차감 행, 이익·손실 겸용 요소(주당이익 등)를 이익 행으로 잘못 보던 것
+  - 오탐 수정: '주석 차감계정 양수 입력' 점검이 '가산할(차감할) 일시적차이'를 차감계정으로 잘못 보던 것
   - 오탐 수정: '총액 요소를 순액 자리에 사용' 점검이 단기·장기 총액 요소(단기매출채권·장기선급금 등)에 유동·비유동 요소를 대체 요소로 안내하던 것
 - **v1.01**
   - DART 공시 XBRL zip(`…_IFRS(원문XBRL)(…).zip`)을 압축을 풀지 않고 바로 점검

@@ -355,7 +355,7 @@ def g4_021(r, std):
 
 
 CONTRA_NAME = re.compile(r"^(Accumulated|Allowance|PresentValueDiscount|GovernmentGrant|Discount|Unamortised)")
-CONTRA_LAB = re.compile(r"충당금|누계액|정부보조금|국고보조금|할인차금|차감")
+CONTRA_LAB = re.compile(r"충당금|누계액|정부보조금|국고보조금|할인차금|차감(계정|항목)?$")   # '가산할(차감할)일시적차이'는 차감계정 아님
 
 
 def g5b_059(r, std):
@@ -1460,12 +1460,16 @@ def g5b_044(r, std):
             if not std.is_std(n) or std.kind(n) != "item" or n in se or (rc, n) in seen:
                 continue
             base = std.label_ko.get(n, "")
-            hit = next((q for l, q in labs.items() if base and l.startswith(base + ",")), None)
-            if not hit:
+            cands = sorted((l, q) for l, q in labs.items() if base and l.startswith(base + ",")
+                           and _nospace(l[len(base) + 1:]) != "총액")
+            if not cands:
                 continue
+            # 후보가 여럿이면(예: '감가상각비, 유형자산' / '감가상각비, 유형자산(사용권자산 포함)') 항상 같은 하나를 고른다:
+            # ① 회사가 이 목차에서 이미 쓴 행 ② 한정어가 이 목차의 회사 표·축·멤버·행 이름에 나오는 행(가장 구체적인 것) ③ 이름이 가장 짧은 행
+            words = " ".join(_nospace(r.label(x)) for x in ns)
+            inw = [(l, q) for l, q in cands if _nospace(l[len(base) + 1:]) in words]   # 가장 구체적인(긴) 한정어 우선
+            hit = next((q for l, q in cands if q in ns), None) or                 (max(inw, key=lambda lq: (len(lq[0]), lq[0]))[1] if inw else None) or                 min(cands, key=lambda lq: (len(lq[0]), lq[0]))[1]
             qual = _nospace(std.label_ko[hit][len(base) + 1:])
-            if qual == "총액":
-                continue
             seen.add((rc, n))
             qa = G5B044_ALIAS.get(qual, qual)
             on_topic = qual not in G5B044_SUBRANGE and any(t and (qa in t or t in qa) for t in topic)
@@ -1593,6 +1597,19 @@ def g5b_057(r, std):
 
 GAIN_ONLY = re.compile(r"(이익|수익|차익)")
 GAIN_BOTH = re.compile(r"손실|손익|차손|비용|결손|이익잉여금")
+# 이익 낱말이 행 이름 끝에 있어야 이익 행('…매매차익을 위해 보유하는 배출권', '…수익의 법인세효과', '공사수익인식'은 아님).
+# 끝의 괄호 설명((금융수익)·(*1))과 [구성요소]는 떼고 본다.
+GAIN_TAIL = re.compile(r"(이익|수익|차익)$")
+GAIN_NOT = re.compile(r"^\s*\(\s*[-−]\s*\)|차감|이연수익|선수수익|미수수익")   # 차감 표시 행, 부채·자산 계정
+GAIN_TWO_WAY_ID = re.compile(r"EarningsLoss|Expense|TaxEffect|Deferred(Income|Revenue)|Accrued")
+
+
+def _gain_row(q, lab):
+    """이익 전용 행인지: 한글명 끝이 이익·수익·차익이고 겸용·차감·계정 행이 아님(요소 이름은 꼬리 뗀 자기 이름)."""
+    core = re.sub(r"(\s*(\[[^\]]*\]|\([^)]*\)))+\s*$", "", lab).strip()
+    # 표준 한글명은 '이자수익, 확정급여제도'처럼 쉼표 뒤에 수식어가 붙으므로 쉼표로 나눈 각 부분의 끝을 본다
+    return any(GAIN_TAIL.search(p.strip()) for p in core.split(",")) and not GAIN_BOTH.search(lab) and not GAIN_NOT.search(lab) \
+        and not GAIN_TWO_WAY_ID.search(_local(q))
 
 
 def _is_3m(r, f):
@@ -1611,7 +1628,7 @@ def g5b_058(r, std):
         v = _num(f["value"])
         q = f["q"]
         lab = _lab(r, q)
-        if v is None or v >= 0 or _attr(r, q)["period_type"] == "instant" or not GAIN_ONLY.search(lab) or GAIN_BOTH.search(lab) or \
+        if v is None or v >= 0 or _attr(r, q)["period_type"] == "instant" or not _gain_row(q, lab) or \
                 re.search(r"GainLoss|ProfitLoss|IncomeLoss|IncomeExpense|IncreaseDecrease|Adjustments", _full(q)):
             continue
         if set(_dims(r, f).values()) - {REPORTED_MEMBER, IF + "CarryingAmountMember"}:
@@ -1620,7 +1637,10 @@ def g5b_058(r, std):
         h["q3" if _is_3m(r, f) else "cum"] = h["q3" if _is_3m(r, f) else "cum"] or f["value"]
     out = []
     for (rc, q), h in hits.items():
-        if h["cum"]:
+        if h["cum"] and "Revenue" in _local(q):
+            # 수익(Revenue) 요소는 짝이 되는 손실 행이 없다(예: 계약잔액 변동표 감소 행에 공사수익 음수)
+            out.append(_f(r, "G5B-058", rc, q, f"수익 행 '{h['lab']}'에 음수 {h['cum']} — 수익 요소는 음수로 쓰지 않음. 변동표의 감소라면 변동 전용 행 사용"))
+        elif h["cum"]:
             out.append(_f(r, "G5B-058", rc, q, f"이익 전용 행 '{h['lab']}'에 음수 {h['cum']} — 손실 행에 양수로"))
         else:
             out.append(_f(r, "G5B-058", rc, q, f"이익 전용 행 '{h['lab']}'의 3개월 열에 음수 {h['q3']} — 누적 열은 양수, 3개월 차감 결과인지 확인",
