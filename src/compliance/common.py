@@ -115,10 +115,12 @@ class Std:
         self.pre_axis_members = defaultdict(set)
         pk = defaultdict(lambda: defaultdict(set))
         pre_axes = defaultdict(set)
+        self.pre_parent = defaultdict(set)   # (role_code, 요소) -> 표준 서식에서의 상위 행
         for rc, p, n, par in c.execute("SELECT role_code,prefix,name,parent FROM pre_arcs"):
             q = f"{p}:{n}"
             if par:
                 pk[rc][par].add(q)
+                self.pre_parent[(rc, q)].add(par)
             if self.concepts.get(q, {}).get("sg") == "xbrldt:dimensionItem":
                 pre_axes[rc].add(q)
         for rc, axs in pre_axes.items():

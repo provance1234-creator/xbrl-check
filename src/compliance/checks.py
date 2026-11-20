@@ -35,7 +35,8 @@ RISK_IDS = {"G5C-001", "G5C-010", "G5B-061", "G5C-050", "G5-002", "G4-021", "G5B
 #  총액요소 오용(교재 33쪽 정정 대상 메일 3번)·확장요소 영문명(55쪽)은 2단계 유지.
 RISK_IDS |= {"G5C-018", "G5B-056"}
 IMP = "개선"
-IMPROVE_CARDS = {"같은 축 아래 동일 멤버 중복", "공시금액 멤버의 위치"}
+IMPROVE_CARDS = {"같은 축 아래 동일 멤버 중복", "공시금액 멤버의 위치",
+                 "같은 뜻 ifrs-full 요소 대신 dart 요소 사용"}   # 가이드 p79 '우선 적용함'(의무 문구), 위반이 아닌 권장 성격
 IMPROVE_IDS = {
     "G4-001", "G4-010", "G4-011", "G4-013", "G4-015", "G4-019", "G4-027", "G4-029", "G4-030", "G4-032",
     "G5-019", "G5-024", "G5-031", "G5-033", "G5-039",
@@ -345,73 +346,106 @@ def check_deprecated(r, std):
 # ---------------------------------------------------------------------------
 # 같은 뜻의 ifrs-full 요소가 있는데 dart 요소만 사용
 # ---------------------------------------------------------------------------
-# ifrs-full(국제 표준)과 dart(금감원 추가) 요소 중 뜻이 같은 쌍. 둘 다 쓰면(본문 dart·주석 ifrs-full 등) 통과,
-# dart만 쓰고 짝인 ifrs-full을 문서 어디에도 안 쓰면 ifrs-full 사용 권장.
-# 쌍은 표준 택사노미에서 고른다: 같은 item·기간유형·데이터타입이고, 한글 라벨(띄어쓰기 무시)
-# 또는 영문 라벨이 같은 것. 장단기(단기·장기)와 유동·비유동은 다른 개념이라 맞추지 않는다
-#  (예: 단기매입채무 ≠ 유동 매입채무, 단기차입금의 증가 ≠ 유동 차입금의 증가).
-# 이름만 비슷하고 뜻이 다른 것은 뺀다: dart:OtherGains(기타이익, gains)는 ifrs-full:OtherIncome(income — 수익 포함)과 범위가 다르다.
-DART_IFRS_EXCLUDE = {"dart:OtherGains"}
+# 가이드 p79 2.(4): "dart"와 "ifrs-full" 요소의 개념이 유사한 경우 "ifrs-full" 요소를 우선 적용
+#  (dart 요소는 IFRS 택사노미 업데이트로 유사 개념이 생겨도 과거 데이터 변환 등을 위해 삭제하지 않고 유지). 본문에도 적용된다.
+# 쌍 목록은 rules/dart_ifrs_pairs.csv — 다음 기준을 모두 만족하는 쌍만 둔다.
+#  ① 데이터 타입·차변/대변·기간유형이 모두 같음
+#  ② 영문 라벨·영문 정의로 보아 표현·복수형·표시 위치(금융수익·판관비·영업외 등)만 다름
+#  범위가 다른 쌍(loans vs loans and advances), 한쪽만 vs 양쪽(gain vs gain (loss)), 총액 vs 순액(가이드 p81~82),
+#  다른 개념, 재무·투자활동 총액 표시와 어긋나는 쌍(가이드 p91)은 짝으로 두지 않는다.
+#  ifrs-full 요소가 금융업 전용(비금융업은 검색용 목차에만 있거나 없음)이면 뺀다(비금융 > 금융업, 예: 지급수수료↔수수료비용).
+#  ifrs-full 요소 하나에는 dart 요소 하나만 짝짓는다(여러 dart가 한 ifrs-full로 모이면 영문이 가장 가까운 것만 남김).
+#  dart 요소가 서식에서 ifrs-full 요소의 하위 행인 짝(공사수익↔건설계약수익, 용역매출액↔용역수익)도 뺀다.
+#  가이드 모범사례가 dart 요소를 쓰는 경우(영업이익 p356, 판관비 표 p262~264, 기대신용손실전(환)입 p127·178, 보통주·우선주자본금 p256)도 짝에서 뺀다.
+# 짝 ifrs-full 요소를 같은 쪽(연결 또는 별도)에서 함께 쓰면 검출하지 않는다 — 본문·주석은 함께 보고 연결·별도는 따로 본다.
+#  같은 요소·같은 context에는 숫자가 하나뿐이라(레퍼런스), 금액이 다른 같은 뜻 항목은 두 요소를 함께 쓸 수밖에 없다.
+# 검출은 dart 요소를 쓴 목차(롤)의 표준 서식 기준으로 판단한다.
+#  ① 그 목차에 dart·ifrs-full 둘 다 같은 상위 행 아래 있음 → 검출(가이드 p79·p134)
+#  ② 그 목차에 dart만 있음 → 통과. 택사노미가 그 목차에 dart 요소를 준 것
+#     둘 다 있어도 상위 행이 다르면(예: 손익계산서의 금융수익 아래 이자수익(금융수익) vs 매출 아래 이자수익) 자리별로 준 것이라 통과(p134 가.)
+#  ③ 그 목차에 ifrs-full만 있음(예: 성격별 비용 주석에 본문용 광고선전비) → 검출(p79, p116 라)
+#  ④ 그 목차에 둘 다 없음(다른 목차 행을 가져다 씀, p116 라) → 검출. 가져올 때도 ifrs-full이 우선(p79)
+#  단, 같은 쪽(연결/별도)에서 그 dart 요소를 서식대로(②) 실제로 쓴 곳이 있으면(예: 재무상태표 본문의 장기금융상품) 다른 곳은 그것을 따라간 것으로 보고 검출하지 않는다.
+#  실제로 쓰지 않았으면(예: 손익계산서 본문에 수도광열비 행 없음) 주석은 주석 서식대로 판단한다.
+DART_IFRS_CSV = "dart_ifrs_pairs.csv"
 
 
-def _ko_core(s):
-    s = re.sub(r"\[.*?\]|\(사용중단\)", "", s or "")
-    return re.sub(r"[\s,·\-()]", "", s)
+def _same_attr(std, a, b):
+    """데이터 타입·차변/대변·기간유형이 모두 같아야 같은 요소로 본다(한쪽만 차변/대변이 없어도 다름)."""
+    x, y = std.concepts[a], std.concepts[b]
+    return all((x.get(k) or "") == (y.get(k) or "") for k in ("type", "balance", "period_type"))
 
 
-def _en_core(s):
-    s = (s or "").lower().replace("noncurrent", "non-current")
-    return re.sub(r"[^a-z]", "", s)
+SEARCH_ROLES = {"D80010", "D80020", "D80030"}   # 기준서와 관계없이 요소를 검색하는 목차(가이드 p40): 세분류·수익과 비용 분석·현금흐름 추가공시
+
+
+def _nonfin_real(std, q):
+    """금융업 전용 요소가 아닌지. 비금융업 실제 목차(검색용 목차 제외)에 없고 금융업 목차에 있으면 금융업 전용 → False(비금융 > 금융업 우선순위)."""
+    rs = std.elem_roles.get(q, ())
+    if not rs:   # DART 택사노미 어느 목차에도 없는 요소(작성기에서 쓸 수 없음)
+        return False
+    if any(not re.match(r"^D[BISX]", rc) and rc[:-1] not in SEARCH_ROLES for rc in rs):
+        return True
+    return not any(re.match(r"^D[BISX]", rc) for rc in rs)
 
 
 def dart_ifrs_pairs(std):
-    """dart 요소 -> 같은 뜻의 ifrs-full 요소 목록 (std에 캐시)."""
+    """dart 요소 -> [(ifrs-full 요소, verdict, reason)] (std에 캐시). 표준 택사노미에 없는 요소는 건너뛴다."""
     if getattr(std, "_dart_ifrs", None) is not None:
         return std._dart_ifrs
+    import csv
+    from .common import ROOT
+    pairs = defaultdict(list)
+    path = ROOT / "rules" / DART_IFRS_CSV
+    if path.exists():
+        with open(path, encoding="utf-8-sig") as fp:
+            for row in csv.DictReader(fp):
+                d, t = row["dart"].strip(), row["ifrs_full"].strip()
+                if d in std.concepts and t in std.concepts and t not in std.deprecated and _same_attr(std, d, t) and _nonfin_real(std, t):
+                    pairs[d].append((t, (row.get("verdict") or "").strip() or "유사", (row.get("reason") or "").strip()))
+    std._dart_ifrs = dict(pairs)
+    return std._dart_ifrs
 
-    def usable(q):
-        i = std.concepts[q]
-        return not i["abstract"] and std.kind(q) == "item" and q not in std.deprecated
 
-    def sig(q):
-        i = std.concepts[q]
-        return i["period_type"], i["type"]
-
-    idx = defaultdict(list)
-    for q in std.concepts:
-        if q.startswith("ifrs-full:") and usable(q) and std.label_ko.get(q):
-            idx[("ko", _ko_core(std.label_ko[q]))].append(q)
-            idx[("en", _en_core(std.label_en.get(q)))].append(q)
-    pairs = {}
-    for q in std.concepts:
-        if not q.startswith("dart:") or q in DART_IFRS_EXCLUDE or not usable(q):
-            continue
-        hits = []
-        for k in (("ko", _ko_core(std.label_ko.get(q))), ("en", _en_core(std.label_en.get(q)))):
-            if k[1]:
-                hits += [t for t in idx.get(k, []) if sig(t) == sig(q) and t not in hits]
-        if hits:
-            pairs[q] = hits
-    std._dart_ifrs = pairs
-    return pairs
+def _cs_sides(roles):
+    """role 코드 집합 -> {'연결','별도'}. 끝자리 0=연결, 5=별도. 둘로 나눌 수 없는 사용(fact·context만, 그 밖 role)은 양쪽 모두로 본다."""
+    out = set()
+    for rc in roles:
+        out |= {"연결"} if rc.endswith("0") and not rc.startswith("(") else                {"별도"} if rc.endswith("5") and not rc.startswith("(") else {"연결", "별도"}
+    return out
 
 
 def check_dart_over_ifrs(r, std):
     used = used_elements(r)
     out = []
     for q, ts in sorted(dart_ifrs_pairs(std).items()):
-        if q not in used or any(t in used for t in ts):
+        same = [(t, w) for t, v, w in ts if v == "같음"]
+        if q not in used or not same:
             continue
-        alt = ", ".join(f"{t}({std.label(t)})" for t in ts)
-        out += _per_role(used, q, lambda rc: Finding(
-            S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", REV, rc, q,
-            f"'{std.label(q)}'은 ifrs-full 요소와 뜻이 같음 → {alt} 사용 권장 "
-            "(같은 문서에서 두 요소를 모두 쓰면 검출하지 않음)",
-            extra={"basis": "약함"}))
+        # 짝 ifrs-full 요소를 쓴 쪽(연결/별도). 본문·주석은 함께 보고 연결·별도는 따로 본다
+        t_sides = set().union(*(_cs_sides(used[t]) for t, _, _ in ts if t in used))
+        alt = ", ".join(f"{t}({std.label(t)} / {std.label_en.get(t, '')})" for t, _ in same)
+        detail = (f"dart 요소 {q}({std.label(q)} / {std.label_en.get(q, '')}) — 개념이 같은 ifrs-full 요소 {alt} 우선 적용 (가이드 p79·p134)")
+        rcs = sorted(x for x in used[q] if not x.startswith("("))
+
+        def _dart_ok(rc):   # 택사노미가 그 목차(자리)에 dart 요소를 준 것
+            key = rc if std.role_elems.get(rc) else rc[:-1] + "0"
+            tmpl = std.role_elems.get(key) or set()
+            if q not in tmpl:
+                return False
+            # 짝 ifrs-full이 같은 서식에 없거나, 있어도 상위 행이 다르면(서식이 자리별로 나눠 줌, 가이드 p134 가. '용도에 맞는 요소') 통과
+            pq = std.pre_parent.get((key, q), set())
+            return all(t not in tmpl or not (pq & std.pre_parent.get((key, t), set())) for t, _ in same)
+        # 같은 쪽 어디서든(본문·주석) dart 요소가 맞게 쓰였으면 다른 곳도 그것을 따라간 것으로 본다(같은 금액은 같은 요소로 레퍼런스)
+        body_ok = set().union(set(), *(_cs_sides({rc}) for rc in rcs if _dart_ok(rc)))
+        for rc in rcs:
+            if _dart_ok(rc) or (_cs_sides({rc}) & (t_sides | body_ok)):
+                continue
+            out.append(Finding(S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q, detail))
     return out
 
 
-RECV_LA_HINT ="장부금액 축의 손상차손누계액 [구성요소] + 금융자산(FinancialAssets) 기초·기말 행으로 작성 (작성가이드 p127)"
+RECV_LA_HINT = "장부금액 축의 손상차손누계액 [구성요소] + 금융자산(FinancialAssets) 기초·기말 행으로 작성 (작성가이드 p127)"
 RECV_LA_TABLE = "dart:DisclosureOfReconciliationOfChangesInLossAllowanceAndExplanationOfChangesInGrossCarryingAmountForReceivablesTable"
 FIN_CLASS_AXES = {"ifrs-full:ClassesOfFinancialInstrumentsAxis", "ifrs-full:ClassesOfFinancialAssetsAxis"}
 
@@ -1769,7 +1803,7 @@ CHECKS = [
     (S1, "초과적립액(과소적립액) 단독 사용", REV, check_surplus, "p251", True),
     (S1, "재고자산 표의 장부금액 축 구성", ERR, check_inventory, "p128·160~165·169", True),
     (S1, "유동·비유동을 축으로 구분", ERR, check_cur_noncur, "p118~119·140", True),
-    (S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", REV, check_dart_over_ifrs, "택사노미(같은 라벨의 ifrs-full 요소)", True),
+    (S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, check_dart_over_ifrs, "p79", True),
     (S2, "사용중단 표시 요소", ERR, check_deprecated, "택사노미 (사용중단) 라벨", True),
     (S2, "IAS 39 대손충당금 변동표", ERR, check_allowance_table, "IFRS 9 전환(택사노미)", True),
     (S2, "금융자산 손상차손 축(만료 예정)", REV, check_impairment_axis, "p103·182", True),
