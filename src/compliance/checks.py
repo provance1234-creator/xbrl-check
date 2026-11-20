@@ -415,6 +415,13 @@ def _cs_sides(roles):
     return out
 
 
+def _area(rc):
+    """목차 코드 → 재무제표 종류. 현금흐름 주석(D8511·D8003)은 현금흐름으로 본다."""
+    if rc.startswith(("D8511", "D8003")) or rc[:2] == "D5":
+        return "현금흐름"
+    return {"D2": "재무상태표", "D3": "손익계산서", "D4": "손익계산서", "D6": "자본변동표"}.get(rc[:2], "주석")
+
+
 def check_dart_over_ifrs(r, std):
     used = used_elements(r)
     out = []
@@ -438,8 +445,13 @@ def check_dart_over_ifrs(r, std):
             return all(t not in tmpl or not (pq & std.pre_parent.get((key, t), set())) for t, _ in same)
         # 같은 쪽 어디서든(본문·주석) dart 요소가 맞게 쓰였으면 다른 곳도 그것을 따라간 것으로 본다(같은 금액은 같은 요소로 레퍼런스)
         body_ok = set().union(set(), *(_cs_sides({rc}) for rc in rcs if _dart_ok(rc)))
+        t_areas = set().union(*({_area(x) for x in std.elem_roles.get(t, ())} for t, _ in same))
         for rc in rcs:
             if _dart_ok(rc) or (_cs_sides({rc}) & (t_sides | body_ok)):
+                continue
+            # 짝 ifrs-full이 이 재무제표 종류에 맞지 않으면(예: 현금흐름 요소를 자본변동표에 씀) 요소 선택 자체의 문제 → 다른 카드 몫
+            a = _area(rc)
+            if (a != "주석" and a not in t_areas) or (a == "주석" and t_areas <= {"현금흐름"}):
                 continue
             out.append(Finding(S1, "같은 뜻 ifrs-full 요소 대신 dart 요소 사용", ERR, rc, q, detail))
     return out
